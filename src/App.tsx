@@ -120,7 +120,7 @@ const TicketEnquiry = () => {
 
       const newTicket = {
         Timestamp: formatDateTime(new Date()),
-        "Ticket ID": ticketId,
+        "Ticket ID": "", 
         "Client Name": formData.clientName,
         "Phone Number": formData.phoneNumber,
         "Email Address": formData.emailAddress,
@@ -142,7 +142,7 @@ const TicketEnquiry = () => {
         },
         body: new URLSearchParams({
           sheetName: "Ticket_Enquiry",
-          action: "insert",
+          action: "insertTicket",
           rowData: JSON.stringify(rowData),
         }),
       });
