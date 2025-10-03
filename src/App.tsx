@@ -1,14 +1,51 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Check, AlertCircle, Loader2 } from "lucide-react";
 
-const TicketEnquiry = () => {
-  const [tickets, setTickets] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [errors, setErrors] = useState({});
+// Type definitions
+interface FormData {
+  clientName: string;
+  phoneNumber: string;
+  emailAddress: string;
+  category: string;
+  priority: string;
+  title: string;
+  description: string;
+  personName: string;
+}
 
-  const [formData, setFormData] = useState({
+interface ValidationErrors {
+  [key: string]: string;
+}
+
+interface SheetResponse {
+  success: boolean;
+  data?: any[][];
+  error?: string;
+}
+
+interface NewTicket {
+  Timestamp: string;
+  "Ticket ID": string;
+  "Client Name": string;
+  "Phone Number": string;
+  "Email Address": string;
+  Category: string;
+  Priority: string;
+  Title: string;
+  Description: string;
+  ColumnAData: string;
+  "Person Name": string;
+}
+
+const TicketEnquiry: React.FC = () => {
+  const [tickets, setTickets] = useState<any[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState<boolean>(false);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [employeeNames, setEmployeeNames] = useState<string[]>([]);
+  const [errors, setErrors] = useState<ValidationErrors>({});
+
+  const [formData, setFormData] = useState<FormData>({
     clientName: "",
     phoneNumber: "",
     emailAddress: "",
@@ -16,22 +53,23 @@ const TicketEnquiry = () => {
     priority: "",
     title: "",
     description: "",
+    personName: "",
   });
 
-  const sheet_url =
+  const sheet_url: string =
     "https://script.google.com/macros/s/AKfycbzsDuvTz21Qx8fAP3MthQdRanIKnFFScPf-SRYp40CqYfKmO4CImMH7-_cVQjMqCsBD/exec";
 
-  const fetchMasterSheet = async () => {
+  const fetchMasterSheet = async (): Promise<void> => {
     try {
       const response = await fetch(`${sheet_url}?sheet=Master`);
-      const result = await response.json();
+      const result: SheetResponse = await response.json();
 
       if (result.success && result.data && result.data.length > 0) {
         const columnAData = result.data
           .slice(1)
-          .map((row) => row[0])
-          .filter((item) => item && item.trim() !== "")
-          .filter((item, index, self) => self.indexOf(item) === index);
+          .map((row: any[]) => row[0])
+          .filter((item: any) => item && item.trim() !== "")
+          .filter((item: string, index: number, self: string[]) => self.indexOf(item) === index);
 
         setCategories(columnAData);
       }
@@ -40,11 +78,31 @@ const TicketEnquiry = () => {
     }
   };
 
+  const fetchEmployeeNames = async (): Promise<void> => {
+    try {
+      const response = await fetch(`${sheet_url}?sheet=Employee Name`);
+      const result: SheetResponse = await response.json();
+
+      if (result.success && result.data && result.data.length > 0) {
+        const employeeData = result.data
+          .slice(1) // Skip header row
+          .map((row: any[]) => row[0]) // Get column A data
+          .filter((item: any) => item && item.trim() !== "")
+          .filter((item: string, index: number, self: string[]) => self.indexOf(item) === index);
+
+        setEmployeeNames(employeeData);
+      }
+    } catch (error) {
+      console.error("Error fetching employee names:", error);
+    }
+  };
+
   useEffect(() => {
     fetchMasterSheet();
+    fetchEmployeeNames();
   }, []);
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: keyof FormData, value: string): void => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
@@ -52,8 +110,8 @@ const TicketEnquiry = () => {
     }
   };
 
-  const validateForm = () => {
-    const newErrors = {};
+  const validateForm = (): boolean => {
+    const newErrors: ValidationErrors = {};
 
     if (!formData.clientName.trim()) newErrors.clientName = 'Client name is required';
     if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone number is required';
@@ -66,12 +124,13 @@ const TicketEnquiry = () => {
     if (!formData.priority) newErrors.priority = 'Priority is required';
     if (!formData.title.trim()) newErrors.title = 'Title is required';
     if (!formData.description.trim()) newErrors.description = 'Description is required';
+    if (!formData.personName) newErrors.personName = 'Person name is required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>): Promise<void> => {
     e.preventDefault();
 
     if (!validateForm()) return;
@@ -80,14 +139,14 @@ const TicketEnquiry = () => {
 
     try {
       const headersResponse = await fetch(`${sheet_url}?sheet=Ticket_Enquiry`);
-      const headersData = await headersResponse.json();
+      const headersData: SheetResponse = await headersResponse.json();
 
       if (!headersData.success || !headersData.data) {
         throw new Error("Could not fetch headers");
       }
 
       const headerRowIndex = headersData.data.findIndex(
-        (row) => row[0] === "Timestamp"
+        (row: any[]) => row[0] === "Timestamp"
       );
 
       if (headerRowIndex === -1) {
@@ -95,21 +154,21 @@ const TicketEnquiry = () => {
       }
 
       const headers = headersData.data[headerRowIndex];
-      
+
       // Generate next ticket ID by finding the highest existing ticket number
       let nextTicketNumber = 1;
-      const ticketIdColumnIndex = headers.findIndex(header => header === "Ticket ID");
-      
+      const ticketIdColumnIndex = headers.findIndex((header: string) => header === "Ticket ID");
+
       if (ticketIdColumnIndex !== -1) {
         const existingTicketIds = headersData.data
           .slice(headerRowIndex + 1) // Skip header row
-          .map(row => row[ticketIdColumnIndex])
-          .filter(id => id && typeof id === 'string' && id.startsWith('TN-'))
-          .map(id => {
+          .map((row: any[]) => row[ticketIdColumnIndex])
+          .filter((id: any) => id && typeof id === 'string' && id.startsWith('TN-'))
+          .map((id: string) => {
             const numPart = id.replace('TN-', '');
             return parseInt(numPart, 10);
           })
-          .filter(num => !isNaN(num));
+          .filter((num: number) => !isNaN(num));
 
         if (existingTicketIds.length > 0) {
           nextTicketNumber = Math.max(...existingTicketIds) + 1;
@@ -118,7 +177,7 @@ const TicketEnquiry = () => {
 
       const ticketId = `TN-${String(nextTicketNumber).padStart(3, "0")}`;
 
-      const newTicket = {
+      const newTicket: NewTicket = {
         Timestamp: formatDateTime(new Date()),
         "Ticket ID": "", 
         "Client Name": formData.clientName,
@@ -129,10 +188,11 @@ const TicketEnquiry = () => {
         Title: formData.title,
         Description: formData.description,
         ColumnAData: formatDateTime(new Date()),
+        "Person Name": formData.personName,
       };
 
-      const rowData = headers.map((header) => {
-        return newTicket[header] || "";
+      const rowData = headers.map((header: string) => {
+        return newTicket[header as keyof NewTicket] || "";
       });
 
       const response = await fetch(sheet_url, {
@@ -147,7 +207,7 @@ const TicketEnquiry = () => {
         }),
       });
 
-      const result = await response.json();
+      const result: SheetResponse = await response.json();
 
       if (result.success) {
         setFormData({
@@ -158,10 +218,11 @@ const TicketEnquiry = () => {
           priority: "",
           title: "",
           description: "",
+          personName: "",
         });
 
         setShowSuccessPopup(true);
-        
+
         // Auto-close popup after 3 seconds
         setTimeout(() => {
           setShowSuccessPopup(false);
@@ -176,7 +237,7 @@ const TicketEnquiry = () => {
     }
   };
 
-  const formatDateTime = (date) => {
+  const formatDateTime = (date: Date): string => {
     const d = new Date(date);
     const day = String(d.getDate()).padStart(2, "0");
     const month = String(d.getMonth() + 1).padStart(2, "0");
@@ -188,7 +249,7 @@ const TicketEnquiry = () => {
     return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
   };
 
-  const getPriorityColor = (priority) => {
+  const getPriorityColor = (priority: string): string => {
     switch (priority) {
       case 'high': return 'text-red-700 bg-red-50 border-red-200';
       case 'medium': return 'text-yellow-700 bg-yellow-50 border-yellow-200';
@@ -229,7 +290,7 @@ const TicketEnquiry = () => {
                         id="clientName"
                         type="text"
                         value={formData.clientName}
-                        onChange={(e) => handleInputChange("clientName", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("clientName", e.target.value)}
                         disabled={isSubmitting}
                         className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                           errors.clientName ? 'border-red-300 bg-red-50' : 'border-blue-200'
@@ -252,7 +313,7 @@ const TicketEnquiry = () => {
                         id="phoneNumber"
                         type="tel"
                         value={formData.phoneNumber}
-                        onChange={(e) => handleInputChange("phoneNumber", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("phoneNumber", e.target.value)}
                         disabled={isSubmitting}
                         className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                           errors.phoneNumber ? 'border-red-300 bg-red-50' : 'border-blue-200'
@@ -267,7 +328,8 @@ const TicketEnquiry = () => {
                       )}
                     </div>
 
-                    <div className="sm:col-span-2 space-y-2">
+                    {/* Email Address and Person Name on same line */}
+                    <div className="space-y-2">
                       <label htmlFor="emailAddress" className="block text-sm font-medium text-blue-800">
                         Email Address *
                       </label>
@@ -275,7 +337,7 @@ const TicketEnquiry = () => {
                         id="emailAddress"
                         type="email"
                         value={formData.emailAddress}
-                        onChange={(e) => handleInputChange("emailAddress", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("emailAddress", e.target.value)}
                         disabled={isSubmitting}
                         className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                           errors.emailAddress ? 'border-red-300 bg-red-50' : 'border-blue-200'
@@ -286,6 +348,38 @@ const TicketEnquiry = () => {
                         <p className="text-red-600 text-sm flex items-center">
                           <AlertCircle className="w-4 h-4 mr-1" />
                           {errors.emailAddress}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="personName" className="block text-sm font-medium text-blue-800">
+                        Employee Name *
+                      </label>
+                      <select
+                        id="personName"
+                        value={formData.personName}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleInputChange("personName", e.target.value)}
+                        disabled={isSubmitting}
+                        className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                          errors.personName ? 'border-red-300 bg-red-50' : 'border-blue-200'
+                        }`}
+                      >
+                        <option value="">Select person name</option>
+                        {employeeNames.length > 0 ? (
+                          employeeNames.map((name: string, index: number) => (
+                            <option key={index} value={name}>
+                              {name}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="" disabled>Loading employee names...</option>
+                        )}
+                      </select>
+                      {errors.personName && (
+                        <p className="text-red-600 text-sm flex items-center">
+                          <AlertCircle className="w-4 h-4 mr-1" />
+                          {errors.personName}
                         </p>
                       )}
                     </div>
@@ -306,7 +400,7 @@ const TicketEnquiry = () => {
                       <select
                         id="category"
                         value={formData.category}
-                        onChange={(e) => handleInputChange("category", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleInputChange("category", e.target.value)}
                         disabled={isSubmitting}
                         className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                           errors.category ? 'border-red-300 bg-red-50' : 'border-blue-200'
@@ -314,7 +408,7 @@ const TicketEnquiry = () => {
                       >
                         <option value="">Select category</option>
                         {categories.length > 0 ? (
-                          categories.map((category, index) => (
+                          categories.map((category: string, index: number) => (
                             <option key={index} value={category}>
                               {category}
                             </option>
@@ -338,7 +432,7 @@ const TicketEnquiry = () => {
                       <select
                         id="priority"
                         value={formData.priority}
-                        onChange={(e) => handleInputChange("priority", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleInputChange("priority", e.target.value)}
                         disabled={isSubmitting}
                         className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                           errors.priority ? 'border-red-300 bg-red-50' : getPriorityColor(formData.priority)
@@ -365,7 +459,7 @@ const TicketEnquiry = () => {
                         id="title"
                         type="text"
                         value={formData.title}
-                        onChange={(e) => handleInputChange("title", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("title", e.target.value)}
                         disabled={isSubmitting}
                         className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                           errors.title ? 'border-red-300 bg-red-50' : 'border-blue-200'
@@ -388,7 +482,7 @@ const TicketEnquiry = () => {
                         id="description"
                         rows={4}
                         value={formData.description}
-                        onChange={(e) => handleInputChange("description", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleInputChange("description", e.target.value)}
                         disabled={isSubmitting}
                         className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none ${
                           errors.description ? 'border-red-300 bg-red-50' : 'border-blue-200'
