@@ -115,11 +115,11 @@ const TicketEnquiry: React.FC = () => {
 
     if (!formData.clientName.trim()) newErrors.clientName = 'Client name is required';
     if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone number is required';
-    if (!formData.emailAddress.trim()) {
-      newErrors.emailAddress = 'Email address is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailAddress)) {
-      newErrors.emailAddress = 'Please enter a valid email address';
-    }
+    // if (!formData.emailAddress.trim()) {
+    //   newErrors.emailAddress = 'Email address is required';
+    // } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailAddress)) {
+    //   newErrors.emailAddress = 'Please enter a valid email address';
+    // }
     if (!formData.category) newErrors.category = 'Category is required';
     if (!formData.priority) newErrors.priority = 'Priority is required';
     if (!formData.title.trim()) newErrors.title = 'Title is required';
@@ -331,7 +331,7 @@ const TicketEnquiry: React.FC = () => {
                     {/* Email Address and Person Name on same line */}
                     <div className="space-y-2">
                       <label htmlFor="emailAddress" className="block text-sm font-medium text-blue-800">
-                        Email Address *
+                        Email Address
                       </label>
                       <input
                         id="emailAddress"
