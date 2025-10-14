@@ -453,7 +453,7 @@ const TicketEnquiry: React.FC = () => {
 
                     <div className="sm:col-span-2 space-y-2">
                       <label htmlFor="title" className="block text-sm font-medium text-blue-800">
-                        Title *
+                        Company Name *
                       </label>
                       <input
                         id="title"
