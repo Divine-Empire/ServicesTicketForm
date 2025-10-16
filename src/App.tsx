@@ -69,7 +69,10 @@ const TicketEnquiry: React.FC = () => {
           .slice(1)
           .map((row: any[]) => row[0])
           .filter((item: any) => item && item.trim() !== "")
-          .filter((item: string, index: number, self: string[]) => self.indexOf(item) === index);
+          .filter(
+            (item: string, index: number, self: string[]) =>
+              self.indexOf(item) === index
+          );
 
         setCategories(columnAData);
       }
@@ -88,7 +91,10 @@ const TicketEnquiry: React.FC = () => {
           .slice(1) // Skip header row
           .map((row: any[]) => row[0]) // Get column A data
           .filter((item: any) => item && item.trim() !== "")
-          .filter((item: string, index: number, self: string[]) => self.indexOf(item) === index);
+          .filter(
+            (item: string, index: number, self: string[]) =>
+              self.indexOf(item) === index
+          );
 
         setEmployeeNames(employeeData);
       }
@@ -106,31 +112,39 @@ const TicketEnquiry: React.FC = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
 
-    if (!formData.clientName.trim()) newErrors.clientName = 'Client name is required';
-    if (!formData.phoneNumber.trim()) newErrors.phoneNumber = 'Phone number is required';
+    if (!formData.clientName.trim())
+      newErrors.clientName = "Client name is required";
+    if (!formData.phoneNumber.trim()) {
+      newErrors.phoneNumber = "Phone number is required";
+    } else if (!/^\d{10}$/.test(formData.phoneNumber)) {
+      newErrors.phoneNumber = "Please enter a valid 10-digit phone number";
+    }
     // if (!formData.emailAddress.trim()) {
     //   newErrors.emailAddress = 'Email address is required';
     // } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.emailAddress)) {
     //   newErrors.emailAddress = 'Please enter a valid email address';
     // }
-    if (!formData.category) newErrors.category = 'Category is required';
-    if (!formData.priority) newErrors.priority = 'Priority is required';
-    if (!formData.title.trim()) newErrors.title = 'Title is required';
-    if (!formData.description.trim()) newErrors.description = 'Description is required';
-    if (!formData.personName) newErrors.personName = 'Person name is required';
+    if (!formData.category) newErrors.category = "Category is required";
+    if (!formData.priority) newErrors.priority = "Priority is required";
+    if (!formData.title.trim()) newErrors.title = "Title is required";
+    if (!formData.description.trim())
+      newErrors.description = "Description is required";
+    if (!formData.personName) newErrors.personName = "Person name is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>): Promise<void> => {
+  const handleSubmit = async (
+    e: React.MouseEvent<HTMLButtonElement>
+  ): Promise<void> => {
     e.preventDefault();
 
     if (!validateForm()) return;
@@ -157,15 +171,19 @@ const TicketEnquiry: React.FC = () => {
 
       // Generate next ticket ID by finding the highest existing ticket number
       let nextTicketNumber = 1;
-      const ticketIdColumnIndex = headers.findIndex((header: string) => header === "Ticket ID");
+      const ticketIdColumnIndex = headers.findIndex(
+        (header: string) => header === "Ticket ID"
+      );
 
       if (ticketIdColumnIndex !== -1) {
         const existingTicketIds = headersData.data
           .slice(headerRowIndex + 1) // Skip header row
           .map((row: any[]) => row[ticketIdColumnIndex])
-          .filter((id: any) => id && typeof id === 'string' && id.startsWith('TN-'))
+          .filter(
+            (id: any) => id && typeof id === "string" && id.startsWith("TN-")
+          )
           .map((id: string) => {
-            const numPart = id.replace('TN-', '');
+            const numPart = id.replace("TN-", "");
             return parseInt(numPart, 10);
           })
           .filter((num: number) => !isNaN(num));
@@ -179,7 +197,7 @@ const TicketEnquiry: React.FC = () => {
 
       const newTicket: NewTicket = {
         Timestamp: formatDateTime(new Date()),
-        "Ticket ID": "", 
+        "Ticket ID": "",
         "Client Name": formData.clientName,
         "Phone Number": formData.phoneNumber,
         "Email Address": formData.emailAddress,
@@ -251,10 +269,14 @@ const TicketEnquiry: React.FC = () => {
 
   const getPriorityColor = (priority: string): string => {
     switch (priority) {
-      case 'high': return 'text-red-700 bg-red-50 border-red-200';
-      case 'medium': return 'text-yellow-700 bg-yellow-50 border-yellow-200';
-      case 'low': return 'text-green-700 bg-green-50 border-green-200';
-      default: return 'text-gray-700 bg-gray-50 border-gray-200';
+      case "high":
+        return "text-red-700 bg-red-50 border-red-200";
+      case "medium":
+        return "text-yellow-700 bg-yellow-50 border-yellow-200";
+      case "low":
+        return "text-green-700 bg-green-50 border-green-200";
+      default:
+        return "text-gray-700 bg-gray-50 border-gray-200";
     }
   };
 
@@ -268,7 +290,9 @@ const TicketEnquiry: React.FC = () => {
             {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 sm:p-6">
               <div className="text-center">
-                <h2 className="text-xl sm:text-2xl font-semibold text-white">Support Ticket Form</h2>
+                <h2 className="text-xl sm:text-2xl font-semibold text-white">
+                  Support Ticket Form
+                </h2>
               </div>
             </div>
 
@@ -283,17 +307,24 @@ const TicketEnquiry: React.FC = () => {
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div className="space-y-2">
-                      <label htmlFor="clientName" className="block text-sm font-medium text-blue-800">
+                      <label
+                        htmlFor="clientName"
+                        className="block text-sm font-medium text-blue-800"
+                      >
                         Client Name *
                       </label>
                       <input
                         id="clientName"
                         type="text"
                         value={formData.clientName}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("clientName", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          handleInputChange("clientName", e.target.value)
+                        }
                         disabled={isSubmitting}
                         className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                          errors.clientName ? 'border-red-300 bg-red-50' : 'border-blue-200'
+                          errors.clientName
+                            ? "border-red-300 bg-red-50"
+                            : "border-blue-200"
                         }`}
                         placeholder="Enter your full name"
                       />
@@ -306,17 +337,30 @@ const TicketEnquiry: React.FC = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <label htmlFor="phoneNumber" className="block text-sm font-medium text-blue-800">
+                      <label
+                        htmlFor="phoneNumber"
+                        className="block text-sm font-medium text-blue-800"
+                      >
                         Phone Number *
                       </label>
                       <input
                         id="phoneNumber"
                         type="tel"
+                        min={10}
+                        maxLength={10}
                         value={formData.phoneNumber}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("phoneNumber", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          // Allow only numbers and limit to 10 digits - ADD THIS
+                          const value = e.target.value
+                            .replace(/\D/g, "")
+                            .slice(0, 10);
+                          handleInputChange("phoneNumber", value);
+                        }}
                         disabled={isSubmitting}
                         className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                          errors.phoneNumber ? 'border-red-300 bg-red-50' : 'border-blue-200'
+                          errors.phoneNumber
+                            ? "border-red-300 bg-red-50"
+                            : "border-blue-200"
                         }`}
                         placeholder="Enter your phone number"
                       />
@@ -330,17 +374,24 @@ const TicketEnquiry: React.FC = () => {
 
                     {/* Email Address and Person Name on same line */}
                     <div className="space-y-2">
-                      <label htmlFor="emailAddress" className="block text-sm font-medium text-blue-800">
+                      <label
+                        htmlFor="emailAddress"
+                        className="block text-sm font-medium text-blue-800"
+                      >
                         Email Address
                       </label>
                       <input
                         id="emailAddress"
                         type="email"
                         value={formData.emailAddress}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("emailAddress", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          handleInputChange("emailAddress", e.target.value)
+                        }
                         disabled={isSubmitting}
                         className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                          errors.emailAddress ? 'border-red-300 bg-red-50' : 'border-blue-200'
+                          errors.emailAddress
+                            ? "border-red-300 bg-red-50"
+                            : "border-blue-200"
                         }`}
                         placeholder="Enter your email address"
                       />
@@ -353,16 +404,23 @@ const TicketEnquiry: React.FC = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <label htmlFor="personName" className="block text-sm font-medium text-blue-800">
+                      <label
+                        htmlFor="personName"
+                        className="block text-sm font-medium text-blue-800"
+                      >
                         Employee Name *
                       </label>
                       <select
                         id="personName"
                         value={formData.personName}
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleInputChange("personName", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                          handleInputChange("personName", e.target.value)
+                        }
                         disabled={isSubmitting}
                         className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                          errors.personName ? 'border-red-300 bg-red-50' : 'border-blue-200'
+                          errors.personName
+                            ? "border-red-300 bg-red-50"
+                            : "border-blue-200"
                         }`}
                       >
                         <option value="">Select person name</option>
@@ -373,7 +431,9 @@ const TicketEnquiry: React.FC = () => {
                             </option>
                           ))
                         ) : (
-                          <option value="" disabled>Loading employee names...</option>
+                          <option value="" disabled>
+                            Loading employee names...
+                          </option>
                         )}
                       </select>
                       {errors.personName && (
@@ -394,16 +454,23 @@ const TicketEnquiry: React.FC = () => {
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div className="space-y-2">
-                      <label htmlFor="category" className="block text-sm font-medium text-blue-800">
+                      <label
+                        htmlFor="category"
+                        className="block text-sm font-medium text-blue-800"
+                      >
                         Category *
                       </label>
                       <select
                         id="category"
                         value={formData.category}
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleInputChange("category", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                          handleInputChange("category", e.target.value)
+                        }
                         disabled={isSubmitting}
                         className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                          errors.category ? 'border-red-300 bg-red-50' : 'border-blue-200'
+                          errors.category
+                            ? "border-red-300 bg-red-50"
+                            : "border-blue-200"
                         }`}
                       >
                         <option value="">Select category</option>
@@ -414,7 +481,9 @@ const TicketEnquiry: React.FC = () => {
                             </option>
                           ))
                         ) : (
-                          <option value="" disabled>Loading categories...</option>
+                          <option value="" disabled>
+                            Loading categories...
+                          </option>
                         )}
                       </select>
                       {errors.category && (
@@ -426,16 +495,23 @@ const TicketEnquiry: React.FC = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <label htmlFor="priority" className="block text-sm font-medium text-blue-800">
+                      <label
+                        htmlFor="priority"
+                        className="block text-sm font-medium text-blue-800"
+                      >
                         Priority *
                       </label>
                       <select
                         id="priority"
                         value={formData.priority}
-                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleInputChange("priority", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                          handleInputChange("priority", e.target.value)
+                        }
                         disabled={isSubmitting}
                         className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                          errors.priority ? 'border-red-300 bg-red-50' : getPriorityColor(formData.priority)
+                          errors.priority
+                            ? "border-red-300 bg-red-50"
+                            : getPriorityColor(formData.priority)
                         }`}
                       >
                         <option value="">Select priority</option>
@@ -452,17 +528,24 @@ const TicketEnquiry: React.FC = () => {
                     </div>
 
                     <div className="sm:col-span-2 space-y-2">
-                      <label htmlFor="title" className="block text-sm font-medium text-blue-800">
+                      <label
+                        htmlFor="title"
+                        className="block text-sm font-medium text-blue-800"
+                      >
                         Company Name *
                       </label>
                       <input
                         id="title"
                         type="text"
                         value={formData.title}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("title", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                          handleInputChange("title", e.target.value)
+                        }
                         disabled={isSubmitting}
                         className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                          errors.title ? 'border-red-300 bg-red-50' : 'border-blue-200'
+                          errors.title
+                            ? "border-red-300 bg-red-50"
+                            : "border-blue-200"
                         }`}
                         placeholder="Enter a brief title for your ticket"
                       />
@@ -475,17 +558,24 @@ const TicketEnquiry: React.FC = () => {
                     </div>
 
                     <div className="sm:col-span-2 space-y-2">
-                      <label htmlFor="description" className="block text-sm font-medium text-blue-800">
+                      <label
+                        htmlFor="description"
+                        className="block text-sm font-medium text-blue-800"
+                      >
                         Description *
                       </label>
                       <textarea
                         id="description"
                         rows={4}
                         value={formData.description}
-                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleInputChange("description", e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                          handleInputChange("description", e.target.value)
+                        }
                         disabled={isSubmitting}
                         className={`w-full px-3 py-2 sm:py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none ${
-                          errors.description ? 'border-red-300 bg-red-50' : 'border-blue-200'
+                          errors.description
+                            ? "border-red-300 bg-red-50"
+                            : "border-blue-200"
                         }`}
                         placeholder="Please provide detailed information about your request..."
                       />
@@ -510,14 +600,30 @@ const TicketEnquiry: React.FC = () => {
                     >
                       {isSubmitting ? (
                         <div className="flex items-center justify-center">
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          <svg
+                            className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
                           </svg>
                           Processing...
                         </div>
                       ) : (
-                        'Submit Ticket'
+                        "Submit Ticket"
                       )}
                     </button>
                   </div>
@@ -533,7 +639,7 @@ const TicketEnquiry: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <div className="text-center">
             <p className="text-sm text-white">
-              Powered by{' '}
+              Powered by{" "}
               <a
                 href="https://www.botivate.in"
                 target="_blank"
@@ -559,7 +665,8 @@ const TicketEnquiry: React.FC = () => {
                 Ticket Submitted Successfully!
               </h3>
               <p className="text-gray-600 mb-6">
-                Your support ticket has been created and our team will get back to you soon.
+                Your support ticket has been created and our team will get back
+                to you soon.
               </p>
               <button
                 onClick={() => setShowSuccessPopup(false)}
